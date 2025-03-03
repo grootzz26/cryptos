@@ -11,7 +11,7 @@ IV = AES.block_size * '\x00'
 
 BS = AES.block_size
 
-pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
+pad = lambda s: s + bytes([BS - len(s) % BS] * (BS - len(s) % BS))
 unpad = lambda s: s[:-ord(s[len(s)-1:])]
 
 
@@ -20,6 +20,7 @@ def encrypt(key, plain_text, iv=None):
         if not iv:
             iv = IV
         iv = iv.encode("utf-8")
+        key = key.encode('utf-8')
         encryptor = AES.new(key, AES.MODE_CBC, iv)
         encrypted_text = encryptor.encrypt(pad(plain_text))
         return base64.b64encode(encrypted_text).decode("utf-8")
@@ -33,7 +34,8 @@ def decrypt(key, plain_text, iv=None):
         if not iv:
             iv = IV
         iv = iv.encode("utf-8")
-        plain_text = str(plain_text).replace('%2b','+').replace("%2B", "+")
+        key = key.encode("utf-8")
+        plain_text = str(plain_text).replace('%2b','+').replace("%2B", "+").replace(" ", "+")
         decryptor = AES.new(key, AES.MODE_CBC, iv)
         response = decryptor.decrypt(base64.b64decode(plain_text))
         return unpad(response)
